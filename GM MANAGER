@@ -1,0 +1,645 @@
+name: GMManager APK Builder
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create GMManager project
+        run: |
+          git clone https://github.com/${{ github.repository }}.git project
+          cd project
+
+          cat > pubspec.yaml <<'EOF'
+          name: gm_manager
+          description: GM Personal AI Assistant and Social Media Manager
+          publish_to: "none"
+          version: 1.0.0+1
+
+          environment:
+            sdk: ">=3.5.0 <4.0.0"
+
+          dependencies:
+            flutter:
+              sdk: flutter
+            image_picker: ^1.1.2
+
+          dev_dependencies:
+            flutter_test:
+              sdk: flutter
+            flutter_lints: ^5.0.0
+
+          flutter:
+            uses-material-design: true
+          EOF
+
+          flutter create --platforms=android .
+
+          cat > lib/main.dart <<'EOF'
+          import 'dart:io';
+          import 'package:flutter/material.dart';
+          import 'package:image_picker/image_picker.dart';
+
+          const green = Color(0xFF087443);
+          const darkGreen = Color(0xFF043D27);
+          const lightGreen = Color(0xFFE6F7EF);
+          const background = Color(0xFFF7FBF9);
+
+          void main() {
+            runApp(const GMManager());
+          }
+
+          class GMManager extends StatelessWidget {
+            const GMManager({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                debugShowCheckedModeBanner: false,
+                title: 'GM Manager',
+                theme: ThemeData(
+                  useMaterial3: true,
+                  scaffoldBackgroundColor: background,
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: green,
+                    primary: green,
+                  ),
+                ),
+                home: const GMHome(),
+              );
+            }
+          }
+
+          class GMHome extends StatefulWidget {
+            const GMHome({super.key});
+
+            @override
+            State<GMHome> createState() => _GMHomeState();
+          }
+
+          class _GMHomeState extends State<GMHome> {
+            int index = 0;
+
+            final pages = const [
+              HomePage(),
+              ContentPage(),
+              StoriesPage(),
+              HighlightsPage(),
+              AssistantPage(),
+            ];
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                body: IndexedStack(
+                  index: index,
+                  children: pages,
+                ),
+                bottomNavigationBar: NavigationBar(
+                  selectedIndex: index,
+                  onDestinationSelected: (value) {
+                    setState(() => index = value);
+                  },
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.auto_awesome_outlined),
+                      selectedIcon: Icon(Icons.auto_awesome),
+                      label: 'Content',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.circle_outlined),
+                      selectedIcon: Icon(Icons.circle),
+                      label: 'Stories',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.collections_bookmark_outlined),
+                      selectedIcon: Icon(Icons.collections_bookmark),
+                      label: 'Highlights',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.smart_toy_outlined),
+                      selectedIcon: Icon(Icons.smart_toy),
+                      label: 'GM',
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+
+          class GMHeader extends StatelessWidget {
+            final String title;
+            final String subtitle;
+
+            const GMHeader({
+              super.key,
+              required this.title,
+              required this.subtitle,
+            });
+
+            @override
+            Widget build(BuildContext context) {
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [darkGreen, green],
+                        ),
+                        borderRadius: BorderRadius.circular(17),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'GM',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 25,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+
+          class HomePage extends StatelessWidget {
+            const HomePage({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return SafeArea(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 30),
+                  children: [
+                    const GMHeader(
+                      title: 'GM Manager',
+                      subtitle: 'Your personal content command center.',
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        padding: const EdgeInsets.all(22),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [darkGreen, green],
+                          ),
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        child: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.auto_awesome,
+                              color: Colors.white,
+                              size: 32,
+                            ),
+                            SizedBox(height: 15),
+                            Text(
+                              'Create. Plan. Grow.',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 25,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Posts, stories, collages, highlights and your GM assistant in one workspace.',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                height: 1.45,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'GM workspace',
+                        style: TextStyle(
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        children: [
+                          FeatureCard(
+                            icon: Icons.auto_awesome,
+                            title: 'AI Content',
+                            text: 'Create and organize content ideas.',
+                          ),
+                          FeatureCard(
+                            icon: Icons.circle,
+                            title: 'Stories',
+                            text: 'Prepare story content before publishing.',
+                          ),
+                          FeatureCard(
+                            icon: Icons.grid_view,
+                            title: 'Collage',
+                            text: 'Combine multiple photos.',
+                          ),
+                          FeatureCard(
+                            icon: Icons.collections_bookmark,
+                            title: 'Highlights',
+                            text: 'Organize your story collections.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+
+          class FeatureCard extends StatelessWidget {
+            final IconData icon;
+            final String title;
+            final String text;
+
+            const FeatureCard({
+              super.key,
+              required this.icon,
+              required this.title,
+              required this.text,
+            });
+
+            @override
+            Widget build(BuildContext context) {
+              return Card(
+                margin: const EdgeInsets.only(bottom: 10),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: lightGreen,
+                    child: Icon(icon, color: green),
+                  ),
+                  title: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  subtitle: Text(text),
+                ),
+              );
+            }
+          }
+
+          class ContentPage extends StatefulWidget {
+            const ContentPage({super.key});
+
+            @override
+            State<ContentPage> createState() => _ContentPageState();
+          }
+
+          class _ContentPageState extends State<ContentPage> {
+            File? image;
+            final caption = TextEditingController();
+
+            Future<void> chooseImage() async {
+              final picked = await ImagePicker().pickImage(
+                source: ImageSource.gallery,
+                imageQuality: 92,
+              );
+
+              if (picked != null) {
+                setState(() {
+                  image = File(picked.path);
+                });
+              }
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text(
+                    'Create Content',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                body: ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    GestureDetector(
+                      onTap: chooseImage,
+                      child: Container(
+                        height: 230,
+                        decoration: BoxDecoration(
+                          color: lightGreen,
+                          borderRadius: BorderRadius.circular(25),
+                          image: image == null
+                              ? null
+                              : DecorationImage(
+                                  image: FileImage(image!),
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                        child: image == null
+                            ? const Center(
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add_photo_alternate_outlined,
+                                      size: 48,
+                                      color: green,
+                                    ),
+                                    SizedBox(height: 10),
+                                    Text(
+                                      'Choose a photo',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Caption',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: caption,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        hintText: 'Write your caption...',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(18),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    FilledButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('GM draft saved.'),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.auto_awesome),
+                      label: const Text('Create with GM'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+
+          class StoriesPage extends StatefulWidget {
+            const StoriesPage({super.key});
+
+            @override
+            State<StoriesPage> createState() => _StoriesPageState();
+          }
+
+          class _StoriesPageState extends State<StoriesPage> {
+            File? image;
+
+            Future<void> chooseImage() async {
+              final picked = await ImagePicker().pickImage(
+                source: ImageSource.gallery,
+                imageQuality: 92,
+              );
+
+              if (picked != null) {
+                setState(() {
+                  image = File(picked.path);
+                });
+              }
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text(
+                    'Stories',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                body: ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    const Text(
+                      'Story Studio',
+                      style: TextStyle(
+                        fontSize: 27,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Create your next story.',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    const SizedBox(height: 18),
+                    AspectRatio(
+                      aspectRatio: 9 / 16,
+                      child: GestureDetector(
+                        onTap: chooseImage,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: lightGreen,
+                            borderRadius: BorderRadius.circular(25),
+                            image: image == null
+                                ? null
+                                : DecorationImage(
+                                    image: FileImage(image!),
+                                    fit: BoxFit.cover,
+                                  ),
+                          ),
+                          child: image == null
+                              ? const Center(
+                                  child: Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 50,
+                                    color: green,
+                                  ),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    FilledButton.icon(
+                      onPressed: chooseImage,
+                      icon: const Icon(Icons.photo_library_outlined),
+                      label: const Text('Choose Photo'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+
+          class HighlightsPage extends StatelessWidget {
+            const HighlightsPage({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text(
+                    'Highlights',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                body: ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    const Text(
+                      'Your Highlights',
+                      style: TextStyle(
+                        fontSize: 27,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Highlight(
+                          title: 'Travel',
+                          icon: Icons.flight_takeoff,
+                        ),
+                        Highlight(
+                          title: 'Life',
+                          icon: Icons.favorite_border,
+                        ),
+                        Highlight(
+                          title: 'Work',
+                          icon: Icons.work_outline,
+                        ),
+                        Highlight(
+                          title: 'Moments',
+                          icon: Icons.photo_camera_outlined,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+                    FilledButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add Highlight'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+
+          class Highlight extends StatelessWidget {
+            final String title;
+            final IconData icon;
+
+            const Highlight({
+              super.key,
+              required this.title,
+              required this.icon,
+            });
+
+            @override
+            Widget build(BuildContext context) {
+              return Column(
+                children: [
+                  Container(
+                    width: 68,
+                    height: 68,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: lightGreen,
+                      border: Border.all(
+                        color: green,
+                        width: 2,
+                      ),
+                    ),
+                    child: Icon(icon, color: green),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              );
+            }
+          }
+
+          class AssistantPage extends StatefulWidget {
+            const AssistantPage({super.key});
+
+            @override
+            State<AssistantPage> createState() => _AssistantPageState();
+          }
+
+          class _AssistantPageState extends State<AssistantPage> {
+            final input = TextEditingController();
+
+            final messages = <String>[
+              'GM: Hi! I am your GM assistant.',
+              'GM: What would you like to create today?',
+            ];
+
+            void send() {
+              final text = input.text.trim();
+
+              if (text.isEmpty) return;
