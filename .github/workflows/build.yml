@@ -32,9 +32,45 @@ jobs:
           flutter --version
           dart --version
 
+      - name: Preserve GMManager code
+        run: |
+          cp lib/main.dart /tmp/main.dart
+
       - name: Create Flutter project structure
         run: |
-          flutter create --platforms=android .
+          flutter create \
+            --project-name gmmanager \
+            --platforms=android \
+            --no-pub \
+            .
+
+      - name: Restore GMManager code
+        run: |
+          cp /tmp/main.dart lib/main.dart
+
+      - name: Get Flutter packages
+        run: |
+          flutter pub get
+
+      - name: Analyze Flutter project
+        run: |
+          flutter analyze || true
+
+      - name: Build GM APK
+        run: |
+          flutter build apk --release
+
+      - name: Find APK
+        run: |
+          echo "=== APK FILES ==="
+          find build -type f -name "*.apk" -print
+
+      - name: Upload final GM APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GMManager-release-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error          flutter create --platforms=android .
 
       - name: Get Flutter packages
         run: |
