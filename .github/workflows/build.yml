@@ -32,9 +32,33 @@ jobs:
           flutter --version
           dart --version
 
-      - name: Get Flutter packages
-        run: flutter pub get
+      - name: Create Flutter project structure
+        run: |
+          flutter create --platforms=android .
 
+      - name: Get Flutter packages
+        run: |
+          flutter pub get
+
+      - name: Analyze Flutter project
+        run: |
+          flutter analyze || true
+
+      - name: Build GM APK
+        run: |
+          flutter build apk --release
+
+      - name: Find APK
+        run: |
+          echo "=== APK FILES ==="
+          find build -type f -name "*.apk" -print
+
+      - name: Upload final GM APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GMManager-release-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
       - name: Build GM APK
         run: flutter build apk --release --target-platform android-arm64
 
