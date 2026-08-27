@@ -643,3 +643,98 @@ jobs:
               final text = input.text.trim();
 
               if (text.isEmpty) return;
+
+              setState(() {
+                messages.add('You: $text');
+                messages.add(
+                  'GM: I understand. Your request has been added to the workspace.',
+                );
+                input.clear();
+              });
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text(
+                    'GM Assistant',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+                body: Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, i) {
+                          final gm = messages[i].startsWith('GM:');
+
+                          return Align(
+                            alignment: gm
+                                ? Alignment.centerLeft
+                                : Alignment.centerRight,
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(14),
+                              constraints: const BoxConstraints(
+                                maxWidth: 330,
+                              ),
+                              decoration: BoxDecoration(
+                                color: gm ? Colors.white : lightGreen,
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Text(messages[i]),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: input,
+                                onSubmitted: (_) => send(),
+                                decoration: const InputDecoration(
+                                  hintText: 'Ask GM...',
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide.none,
+                                    borderRadius: BorderRadius.all(
+                                      Radius.circular(20),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            FloatingActionButton(
+                              onPressed: send,
+                              child: const Icon(Icons.send),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+          }
+          EOF
+
+          flutter pub get
+          flutter analyze
+          flutter build apk --release
+
+      - name: Upload final APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GMManager-APK
+          path: project/build/app/outputs/flutter-apk/app-release.apk
